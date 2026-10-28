@@ -38,8 +38,8 @@ export function Hero({ section }: { section: HomeSection }) {
         >
           <motion.div
             className="absolute inset-0"
-            initial={{ scale: reduce ? 1 : 1.08 }}
-            animate={{ scale: reduce ? 1 : 1.16 }}
+            initial={{ scale: 1.08 }}
+            animate={{ scale: reduce ? 1.08 : 1.16 }}
             transition={{ duration: reduce ? 0 : 6.5, ease: "linear" }}
           >
             <Image
@@ -56,7 +56,7 @@ export function Hero({ section }: { section: HomeSection }) {
       <div className="absolute inset-0 bg-graphite/78" />
       <Container className="relative z-10 flex flex-col items-center py-20 text-center">
         <motion.div
-          initial={reduce ? false : { scale: 0.62, opacity: 0 }}
+          initial={{ scale: 0.62, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: reduce ? 0 : 0.9, ease: "easeOut" }}
         >
@@ -72,7 +72,7 @@ export function Hero({ section }: { section: HomeSection }) {
         <AnimatePresence mode="wait">
           <motion.div
             key={slide.titulo}
-            initial={reduce ? false : { opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={reduce ? undefined : { opacity: 0, y: -12 }}
             transition={{ duration: reduce ? 0 : 0.45, ease: "easeOut" }}

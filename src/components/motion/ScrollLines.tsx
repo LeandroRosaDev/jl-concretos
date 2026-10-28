@@ -14,11 +14,10 @@ type Line = {
 }
 
 const lines: Line[] = [
-  { width: 4, opacity: 0.3, wave: 2.6, phase: 0, amplitude: 0.6, sweep: 90, drift: -0.06 },
-  { width: 3, opacity: 0.24, wave: 3.4, phase: Math.PI, amplitude: 0.55, sweep: -112, drift: 0.05 },
-  { width: 2.5, opacity: 0.2, wave: 2, phase: Math.PI / 2, amplitude: 0.66, sweep: 74, drift: 0.08 },
-  { width: 3.5, opacity: 0.26, wave: 4.2, phase: -Math.PI / 3, amplitude: 0.5, sweep: -134, drift: -0.09 },
-  { width: 2, opacity: 0.16, wave: 3, phase: (2 * Math.PI) / 3, amplitude: 0.62, sweep: 152, drift: 0.11 },
+  { width: 4, opacity: 0.13, wave: 6.5, phase: 0, amplitude: 0.58, sweep: 90, drift: -0.06 },
+  { width: 3, opacity: 0.1, wave: 8.5, phase: Math.PI, amplitude: 0.52, sweep: -112, drift: 0.05 },
+  { width: 2.5, opacity: 0.085, wave: 5.5, phase: Math.PI / 2, amplitude: 0.6, sweep: 74, drift: 0.08 },
+  { width: 3.5, opacity: 0.115, wave: 10, phase: -Math.PI / 3, amplitude: 0.48, sweep: -134, drift: -0.09 },
 ]
 
 function buildPath(line: Line, width: number, height: number, viewport: number) {
@@ -116,28 +115,29 @@ export function ScrollLines() {
       preserveAspectRatio="none"
       aria-hidden
     >
-      {paths.map((d, index) => (
-        <g
-          key={lines[index].phase + lines[index].wave}
-          ref={(node) => {
-            groupRefs.current[index] = node
-          }}
-        >
-          <path
+      {paths.length === lines.length &&
+        lines.map((line, index) => (
+          <g
+            key={line.phase + line.wave}
             ref={(node) => {
-              pathRefs.current[index] = node
+              groupRefs.current[index] = node
             }}
-            d={d}
-            fill="none"
-            stroke="#ab1815"
-            strokeWidth={lines[index].width}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-            opacity={lines[index].opacity}
-          />
-        </g>
-      ))}
+          >
+            <path
+              ref={(node) => {
+                pathRefs.current[index] = node
+              }}
+              d={paths[index]}
+              fill="none"
+              stroke="#ab1815"
+              strokeWidth={line.width}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+              opacity={line.opacity}
+            />
+          </g>
+        ))}
     </svg>
   )
 }
