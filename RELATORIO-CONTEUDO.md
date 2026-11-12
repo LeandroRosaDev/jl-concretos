@@ -5,8 +5,9 @@ Fonte: https://jlconcretousinado.com.br/ em 27 de outubro de 2026.
 ## Usado no site novo
 
 - Textos de home, sobre, serviços, FAQ, blog e política, reescritos.
-- WhatsApp do Léo: (21) 97019-2706.
-- WhatsApp do Junior: (21) 96409-9610. O atalho antigo `bit.ly/JLConcreto2` ainda abria a mensagem “Olá Léo”; aqui a mensagem usa o nome Junior.
+- WhatsApp do Léo: (21) 97434-5075.
+- WhatsApp da Júlia (Comercial): (21) 97019-2706. É também o número principal do site (botão flutuante, cabeçalho e chamadas de orçamento).
+- O Junior saiu do site; a Júlia ocupa o lugar dele.
 - E-mails: contato@jlconcretousinado.com.br e jlconcreto2020@gmail.com.
 - Endereço: Rua Crateus, s/n, Quadra 05, Lote 05, Chácara Rio Petrópolis, Duque de Caxias.
 - Horário: segunda a sexta, 7h às 18h; sábado, 7h às 12h (o sábado aparece na página de privacidade do site antigo).

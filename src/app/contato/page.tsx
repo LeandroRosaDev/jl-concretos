@@ -7,7 +7,7 @@ import { PageBody, PageIntro, PageMain } from "@/components/pages/SimplePage"
 export const metadata: Metadata = {
   title: "Fale conosco",
   description:
-    "Orçamento de concreto bombeado pelo WhatsApp. Léo (21) 97019-2706 e Junior (21) 96409-9610. Usina em Duque de Caxias.",
+    "Orçamento de concreto bombeado pelo WhatsApp. Léo (21) 97434-5075 e Júlia, do comercial, (21) 97019-2706. Usina em Duque de Caxias.",
   alternates: { canonical: "/contato" },
 }
 
@@ -18,7 +18,7 @@ export default function ContatoPage() {
         <PageIntro
           eyebrow="Contato"
           title="Peça o orçamento direto com quem vende"
-          summary="Não há formulário. O atendimento começa no WhatsApp, no horário da concreteira, com o Léo ou com o Junior."
+          summary="Não há formulário. O atendimento começa no WhatsApp, no horário da concreteira, com o Léo ou com a Júlia."
         />
         <div className="mt-10">
           <VendorCards />

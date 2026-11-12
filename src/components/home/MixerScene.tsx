@@ -19,8 +19,68 @@ const TRUCK = { box: 180, x: 193, travel: 106, wheels: 0.771 }
 const TRUCK_BOTTOM = VB.h - (GROUND - TRUCK.wheels * TRUCK.box + TRUCK.box)
 
 const LABEL = "text-[15px] md:text-[12px]"
+const BIN_LABEL = "text-[12px] font-medium md:text-[10.5px]"
 
 const pct = (value: number, total: number) => `${(value / total) * 100}%`
+
+// Ordem da usina, da esquerda para a direita: cimento, brita 0, brita 1,
+// areia natural, areia artificial e água. Todos descem para a balança.
+type LabelLine = { text: string; fit?: number }
+
+type Bin = {
+  id: string
+  x: number
+  lines: LabelLine[]
+  feed: string
+  feedColor: string
+  fill: [number, number]
+}
+
+const BIN = { w: 50, top: 30, body: 64, tip: 82, outlet: 87 }
+const BIN_MAX = BIN.tip - BIN.top
+
+const bins: Bin[] = [
+  {
+    id: "brita-0",
+    x: 68,
+    lines: [{ text: "BRITA" }, { text: "0" }],
+    feed: "M93 87 V97 H146 V104",
+    feedColor: "#d9d9d4",
+    fill: [0.1, 0.24],
+  },
+  {
+    id: "brita-1",
+    x: 130,
+    lines: [{ text: "BRITA" }, { text: "1" }],
+    feed: "M155 87 V97 H166 V104",
+    feedColor: "#d9d9d4",
+    fill: [0.12, 0.26],
+  },
+  {
+    id: "areia-natural",
+    x: 192,
+    lines: [{ text: "AREIA" }, { text: "NATURAL", fit: 48 }],
+    feed: "M217 87 V97 H204 V104",
+    feedColor: "#d8b878",
+    fill: [0.15, 0.29],
+  },
+  {
+    id: "areia-artificial",
+    x: 254,
+    lines: [{ text: "AREIA" }, { text: "ARTIFICIAL", fit: 56 }],
+    feed: "M279 87 V97 H226 V104",
+    feedColor: "#ece4cf",
+    fill: [0.18, 0.31],
+  },
+]
+
+const SILO = { x: 14, w: 42, top: 26, bottom: 118, fill: [0.08, 0.22] as [number, number] }
+const TANK = { x: 318, w: 50, top: 34, bottom: 72, fill: [0.2, 0.34] as [number, number] }
+
+const binShape = (x: number) => {
+  const cx = x + BIN.w / 2
+  return `M${x} ${BIN.top} H${x + BIN.w} V${BIN.body} L${cx + 5} ${BIN.tip} H${cx - 5} L${x} ${BIN.body} Z`
+}
 
 type Material = {
   id: string
@@ -32,10 +92,10 @@ type Material = {
 }
 
 const materials: Material[] = [
-  { id: "brita", label: "Brita", src: "/imagens/materiais/brita.png", mobile: true, from: { x: -90, y: 250 }, to: { x: 99, y: 46 } },
-  { id: "areia", label: "Areia", src: "/imagens/materiais/areia.png", mobile: true, from: { x: 730, y: 240 }, to: { x: 165, y: 46 } },
-  { id: "cimento", label: "Cimento", src: "/imagens/materiais/cimento.png", mobile: true, from: { x: -80, y: 40 }, to: { x: 39, y: 62 } },
-  { id: "agua", label: "Água", src: "/imagens/materiais/agua.png", mobile: false, from: { x: 730, y: 20 }, to: { x: 303, y: 52 } },
+  { id: "cimento", label: "Cimento", src: "/imagens/materiais/cimento.png", mobile: true, from: { x: -80, y: 40 }, to: { x: 35, y: 64 } },
+  { id: "brita", label: "Brita", src: "/imagens/materiais/brita.png", mobile: true, from: { x: -90, y: 250 }, to: { x: 124, y: 50 } },
+  { id: "areia", label: "Areia", src: "/imagens/materiais/areia.png", mobile: true, from: { x: 730, y: 240 }, to: { x: 248, y: 50 } },
+  { id: "agua", label: "Água", src: "/imagens/materiais/agua.png", mobile: false, from: { x: 730, y: 20 }, to: { x: 343, y: 52 } },
 ]
 
 function usePaint<T>(value: MotionValue<T>, apply: (next: T) => void) {
@@ -160,15 +220,72 @@ function GiantWord({
   )
 }
 
+function BinLabel({ x, lines }: { x: number; lines: LabelLine[] }) {
+  const baselines = lines.length === 1 ? [21] : [9, 21]
+  return (
+    <>
+      {lines.map((line, index) => (
+        <text
+          key={line.text}
+          x={x}
+          y={baselines[index]}
+          textAnchor="middle"
+          fill="#f7f7f5"
+          opacity="0.85"
+          className={BIN_LABEL}
+          {...(line.fit ? { textLength: line.fit, lengthAdjust: "spacingAndGlyphs" as const } : {})}
+        >
+          {line.text}
+        </text>
+      ))}
+    </>
+  )
+}
+
+// Texturas leves para cada insumo, em vez de PNGs pesados dentro do SVG.
+function MaterialPatterns() {
+  return (
+    <>
+      <pattern id="jl-tex-brita-0" width="9" height="9" patternUnits="userSpaceOnUse">
+        <rect width="9" height="9" fill="#6f6f6b" />
+        <circle cx="2" cy="2" r="1.9" fill="#b3b3ae" />
+        <circle cx="6.5" cy="3" r="1.6" fill="#8e8e89" />
+        <circle cx="3.5" cy="6.8" r="1.7" fill="#9f9f9a" />
+        <circle cx="7.6" cy="7.4" r="1.3" fill="#c8c8c3" />
+      </pattern>
+      <pattern id="jl-tex-brita-1" width="16" height="16" patternUnits="userSpaceOnUse">
+        <rect width="16" height="16" fill="#5f5f5b" />
+        <circle cx="4" cy="4" r="3.6" fill="#a9a9a4" />
+        <circle cx="12" cy="5" r="3.2" fill="#85857f" />
+        <circle cx="7.5" cy="12" r="3.5" fill="#b9b9b4" />
+        <circle cx="14.5" cy="13" r="2.4" fill="#93938e" />
+        <circle cx="1" cy="12" r="2" fill="#7c7c77" />
+      </pattern>
+      <pattern id="jl-tex-areia-natural" width="6" height="6" patternUnits="userSpaceOnUse">
+        <rect width="6" height="6" fill="#c69a5c" />
+        <circle cx="1.2" cy="1.4" r="0.7" fill="#e3c08a" />
+        <circle cx="4.3" cy="2.6" r="0.6" fill="#9e7541" />
+        <circle cx="2.6" cy="4.7" r="0.6" fill="#ddb57a" />
+        <circle cx="5.2" cy="5.3" r="0.5" fill="#a87d47" />
+      </pattern>
+      <pattern id="jl-tex-areia-artificial" width="6" height="6" patternUnits="userSpaceOnUse">
+        <rect width="6" height="6" fill="#ddd8cb" />
+        <circle cx="1.2" cy="1.4" r="0.7" fill="#f6f3ea" />
+        <circle cx="4.3" cy="2.6" r="0.6" fill="#b5afa1" />
+        <circle cx="2.6" cy="4.7" r="0.6" fill="#f0ece1" />
+        <circle cx="5.2" cy="5.3" r="0.5" fill="#c2bcae" />
+      </pattern>
+      <pattern id="jl-tex-agua" width="20" height="8" patternUnits="userSpaceOnUse">
+        <rect width="20" height="8" fill="#1f86d4" />
+        <path d="M0 4 Q5 1 10 4 T20 4" fill="none" stroke="#5cc2f5" strokeWidth="1.4" opacity="0.8" />
+      </pattern>
+    </>
+  )
+}
+
 function PlantScene({
-  bin0,
-  bin1,
-  bin2,
-  silo,
-  tank,
-  belt,
-  screw,
-  waterPipe,
+  fills,
+  feeds,
   scaleFill,
   blades,
   chute,
@@ -179,14 +296,8 @@ function PlantScene({
   floorMid,
   floorTop,
 }: {
-  bin0: RefObject<SVGRectElement | null>
-  bin1: RefObject<SVGRectElement | null>
-  bin2: RefObject<SVGRectElement | null>
-  silo: RefObject<SVGRectElement | null>
-  tank: RefObject<SVGRectElement | null>
-  belt: RefObject<SVGPathElement | null>
-  screw: RefObject<SVGPathElement | null>
-  waterPipe: RefObject<SVGPathElement | null>
+  fills: RefObject<Record<string, SVGRectElement | null>>
+  feeds: RefObject<SVGGElement | null>
   scaleFill: RefObject<SVGRectElement | null>
   blades: RefObject<SVGGElement | null>
   chute: RefObject<SVGGElement | null>
@@ -197,104 +308,32 @@ function PlantScene({
   floorMid: RefObject<SVGRectElement | null>
   floorTop: RefObject<SVGRectElement | null>
 }) {
+  const fillRef = (id: string) => (node: SVGRectElement | null) => {
+    fills.current[id] = node
+  }
+  const siloCx = SILO.x + SILO.w / 2
+  const tankCx = TANK.x + TANK.w / 2
+
   return (
     <svg viewBox={`0 0 ${VB.w} ${VB.h}`} className="absolute inset-0 h-full w-full overflow-visible" aria-hidden>
       <defs>
-        <clipPath id="jl-bin-0">
-          <path d="M72 22 H126 L120 84 H78 Z" />
+        <MaterialPatterns />
+        {bins.map((bin) => (
+          <clipPath key={bin.id} id={`jl-clip-${bin.id}`}>
+            <path d={binShape(bin.x)} />
+          </clipPath>
+        ))}
+        <clipPath id="jl-clip-silo">
+          <rect x={SILO.x} y={SILO.top} width={SILO.w} height={SILO.bottom - SILO.top} rx="4" />
         </clipPath>
-        <clipPath id="jl-bin-1">
-          <path d="M138 22 H192 L186 84 H144 Z" />
-        </clipPath>
-        <clipPath id="jl-bin-2">
-          <path d="M204 22 H258 L252 84 H210 Z" />
-        </clipPath>
-        <clipPath id="jl-silo">
-          <rect x="18" y="14" width="42" height="116" />
-        </clipPath>
-        <clipPath id="jl-tank">
-          <rect x="278" y="30" width="50" height="46" rx="6" />
+        <clipPath id="jl-clip-tank">
+          <rect x={TANK.x} y={TANK.top} width={TANK.w} height={TANK.bottom - TANK.top} rx="6" />
         </clipPath>
       </defs>
 
       <line x1="0" y1={GROUND} x2={VB.w} y2={GROUND} stroke="#f7f7f5" strokeWidth="2" opacity="0.4" />
 
-      <path d="M70 22 H128 L121 86 H77 Z" fill="none" stroke="#f7f7f5" strokeWidth="2" />
-      <path d="M136 22 H194 L187 86 H143 Z" fill="none" stroke="#f7f7f5" strokeWidth="2" />
-      <path d="M202 22 H260 L253 86 H209 Z" fill="none" stroke="#f7f7f5" strokeWidth="2" />
-      <rect ref={bin0} clipPath="url(#jl-bin-0)" x="70" y="84" width="60" height="0" fill="#9a9a96" />
-      <rect ref={bin1} clipPath="url(#jl-bin-1)" x="136" y="84" width="60" height="0" fill="#c2a15a" />
-      <rect ref={bin2} clipPath="url(#jl-bin-2)" x="202" y="84" width="60" height="0" fill="#b7b7b2" />
-      <text x="99" y="16" textAnchor="middle" fill="#f7f7f5" opacity="0.7" className={LABEL}>
-        BRITA
-      </text>
-      <text x="165" y="16" textAnchor="middle" fill="#f7f7f5" opacity="0.7" className={LABEL}>
-        AREIA
-      </text>
-      <text x="231" y="16" textAnchor="middle" fill="#f7f7f5" opacity="0.7" className={LABEL}>
-        PEDRA
-      </text>
-
-      <path d="M99 86 V96 M165 86 V96 M231 86 V96" stroke="#f7f7f5" strokeWidth="2" opacity="0.5" />
-      <path d="M86 98 H246" stroke="#3a3a3a" strokeWidth="9" strokeLinecap="round" />
-      <path
-        ref={belt}
-        d="M86 98 H246"
-        fill="none"
-        stroke="#f7f7f5"
-        strokeWidth="2"
-        strokeDasharray="7 9"
-        opacity="0.9"
-      />
-
-      <rect x="18" y="14" width="42" height="116" rx="4" fill="#161616" stroke="#f7f7f5" strokeWidth="2" />
-      <rect ref={silo} clipPath="url(#jl-silo)" x="18" y="130" width="42" height="0" fill="#d9d9d4" />
-      <path d="M18 130 H60 L39 154 Z" fill="#161616" stroke="#f7f7f5" strokeWidth="2" />
-      <text x="39" y="8" textAnchor="middle" fill="#f7f7f5" opacity="0.7" className={LABEL}>
-        CIMENTO
-      </text>
-      <path
-        ref={screw}
-        d="M39 152 C 70 146, 96 128, 128 112"
-        fill="none"
-        stroke="#ab1815"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeDasharray="4 8"
-      />
-
-      <rect x="278" y="30" width="50" height="46" rx="6" fill="#14222c" stroke="#f7f7f5" strokeWidth="2" />
-      <rect ref={tank} clipPath="url(#jl-tank)" x="278" y="76" width="50" height="0" fill="#3d88b8" />
-      <text x="303" y="24" textAnchor="middle" fill="#f7f7f5" opacity="0.7" className={LABEL}>
-        ÁGUA
-      </text>
-      <path
-        ref={waterPipe}
-        d="M303 76 C 300 96, 272 104, 240 110"
-        fill="none"
-        stroke="#7eb7d6"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeDasharray="4 8"
-      />
-
-      <path d="M128 100 H238 L190 132 H176 Z" fill="#111" stroke="#f7f7f5" strokeWidth="2" />
-      <rect ref={scaleFill} x="132" y="130" width="102" height="0" fill="#8f8f8a" opacity="0.9" />
-      <text x="250" y="128" textAnchor="start" fill="#f7f7f5" opacity="0.7" className={LABEL}>
-        BALANÇA
-      </text>
-
-      <circle cx="183" cy="156" r="24" fill="#161616" stroke="#f7f7f5" strokeWidth="2.5" />
-      <circle cx="183" cy="156" r="14" fill="none" stroke="#f7f7f5" strokeWidth="1.2" opacity="0.4" />
-      <g ref={blades}>
-        <line x1="183" y1="156" x2="183" y2="136" stroke="#f7f7f5" strokeWidth="2.5" strokeLinecap="round" />
-        <line x1="183" y1="156" x2="201" y2="167" stroke="#f7f7f5" strokeWidth="2.5" strokeLinecap="round" />
-        <line x1="183" y1="156" x2="165" y2="167" stroke="#ab1815" strokeWidth="2.5" strokeLinecap="round" />
-      </g>
-      <text x="212" y="150" textAnchor="start" fill="#f7f7f5" opacity="0.7" className={LABEL}>
-        MISTURADOR
-      </text>
-
+      {/* Estrutura da usina, atrás de tudo para não cruzar os rótulos. */}
       <g opacity="0.55" stroke="#f7f7f5" strokeWidth="3" fill="none">
         <path d={`M128 104 L96 ${GROUND}`} />
         <path d={`M238 104 L398 ${GROUND}`} />
@@ -303,6 +342,90 @@ function PlantScene({
           <path d="M103 254 L373 254" strokeWidth="2" />
         </g>
       </g>
+
+      {/* Bomba: só o mastro e a lança, ligados à traseira do caminhão estacionado. */}
+      <g ref={pump} opacity="0" fill="none" stroke="#f7f7f5" strokeLinecap="round">
+        <path d="M306 258 C 296 262, 290 268, 286 276" strokeWidth="4" />
+        <path d={`M286 ${GROUND} V140`} strokeWidth="4" />
+        <path d={`M278 ${GROUND} H294`} strokeWidth="4" />
+        <path d="M286 140 L368 100 L470 108 L560 128" strokeWidth="4" strokeLinejoin="round" />
+        <circle cx="368" cy="100" r="4" fill="#ab1815" stroke="none" />
+        <circle cx="470" cy="108" r="4" fill="#ab1815" stroke="none" />
+        <text x="280" y="236" textAnchor="end" fill="#f7f7f5" fillOpacity="0.75" stroke="#111111" strokeWidth="5" strokeLinejoin="round" paintOrder="stroke" className={LABEL}>
+          BOMBA
+        </text>
+      </g>
+
+      {/* Canos tracejados: cada insumo desce até a balança. */}
+      <g ref={feeds} fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="5 5">
+        <path d={`M${siloCx} 143 C 64 152, 100 130, 132 116`} stroke="#f7f7f5" />
+        {bins.map((bin) => (
+          <path key={bin.id} d={bin.feed} stroke={bin.feedColor} />
+        ))}
+        <path d={`M${tankCx} 78 C 340 100, 290 108, 236 114`} stroke="#5ec4f2" />
+      </g>
+
+      {/* Cimento */}
+      <rect x={SILO.x} y={SILO.top} width={SILO.w} height={SILO.bottom - SILO.top} rx="4" fill="#161616" />
+      <rect ref={fillRef("silo")} clipPath="url(#jl-clip-silo)" x={SILO.x} y={SILO.bottom} width={SILO.w} height="0" fill="#ecece8" />
+      <rect x={SILO.x} y={SILO.top} width={SILO.w} height={SILO.bottom - SILO.top} rx="4" fill="none" stroke="#f7f7f5" strokeWidth="2" />
+      <path d={`M${SILO.x} 57 H${SILO.x + SILO.w} M${SILO.x} 88 H${SILO.x + SILO.w}`} stroke="#9a9a96" strokeWidth="1" />
+      <path d={`M${SILO.x} ${SILO.bottom} H${SILO.x + SILO.w} L${siloCx + 3} 138 H${siloCx - 3} Z`} fill="#bdbdb8" stroke="#f7f7f5" strokeWidth="2" strokeLinejoin="round" />
+      <rect x={siloCx - 3} y="138" width="6" height="5" fill="#f7f7f5" />
+      <BinLabel x={siloCx} lines={[{ text: "CIMENTO", fit: 46 }]} />
+
+      {/* Britas e areias */}
+      {bins.map((bin) => {
+        const cx = bin.x + BIN.w / 2
+        const shape = binShape(bin.x)
+        return (
+          <g key={bin.id}>
+            <path d={shape} fill="#161616" />
+            <rect
+              ref={fillRef(bin.id)}
+              clipPath={`url(#jl-clip-${bin.id})`}
+              x={bin.x}
+              y={BIN.tip}
+              width={BIN.w}
+              height="0"
+              fill={`url(#jl-tex-${bin.id})`}
+            />
+            <path d={shape} fill="none" stroke="#f7f7f5" strokeWidth="2" strokeLinejoin="round" />
+            <rect x={cx - 3} y={BIN.tip} width="6" height={BIN.outlet - BIN.tip} fill={bin.feedColor} />
+            <BinLabel x={cx} lines={bin.lines} />
+          </g>
+        )
+      })}
+
+      {/* Água */}
+      <rect x={TANK.x} y={TANK.top} width={TANK.w} height={TANK.bottom - TANK.top} rx="6" fill="#14222c" />
+      <rect ref={fillRef("tank")} clipPath="url(#jl-clip-tank)" x={TANK.x} y={TANK.bottom} width={TANK.w} height="0" fill="url(#jl-tex-agua)" />
+      <rect x={TANK.x} y={TANK.top} width={TANK.w} height={TANK.bottom - TANK.top} rx="6" fill="none" stroke="#f7f7f5" strokeWidth="2" />
+      <rect x={tankCx - 3} y={TANK.bottom} width="6" height="6" fill="#5ec4f2" />
+      <BinLabel x={tankCx} lines={[{ text: "ÁGUA" }]} />
+
+      {/* Balança */}
+      <rect x="132" y="104" width="102" height="26" rx="2" fill="#111" stroke="#f7f7f5" strokeWidth="2" />
+      <rect ref={scaleFill} x="134" y="128" width="98" height="0" fill="#8f8f8a" opacity="0.9" />
+      <path d="M152 106 V128 M172 106 V128 M193 106 V128 M214 106 V128" stroke="#f7f7f5" strokeWidth="1" opacity="0.3" />
+      <path d="M128 104 H140 M226 104 H238" stroke="#f7f7f5" strokeWidth="3" strokeLinecap="round" />
+      <path d="M183 130 V132" stroke="#f7f7f5" strokeWidth="4" />
+      <text x="244" y="132" textAnchor="start" fill="#f7f7f5" fillOpacity="0.75" stroke="#111111" strokeWidth="5" strokeLinejoin="round" paintOrder="stroke" className={LABEL}>
+        BALANÇA
+      </text>
+
+      {/* Misturador */}
+      <circle cx="183" cy="156" r="24" fill="#161616" stroke="#f7f7f5" strokeWidth="2.5" />
+      <circle cx="183" cy="156" r="14" fill="none" stroke="#f7f7f5" strokeWidth="1.2" opacity="0.4" />
+      <g ref={blades}>
+        <line x1="183" y1="156" x2="183" y2="136" stroke="#f7f7f5" strokeWidth="2.5" strokeLinecap="round" />
+        <line x1="183" y1="156" x2="201" y2="167" stroke="#f7f7f5" strokeWidth="2.5" strokeLinecap="round" />
+        <line x1="183" y1="156" x2="165" y2="167" stroke="#ab1815" strokeWidth="2.5" strokeLinecap="round" />
+      </g>
+      <circle cx="183" cy="156" r="3" fill="#ab1815" />
+      <text x="212" y="156" textAnchor="start" fill="#f7f7f5" fillOpacity="0.75" stroke="#111111" strokeWidth="5" strokeLinejoin="round" paintOrder="stroke" className={LABEL}>
+        MISTURADOR
+      </text>
 
       <g ref={chute}>
         <path d="M183 180 L238 190" stroke="#1a1c1f" strokeWidth="11" strokeLinecap="round" />
@@ -328,23 +451,10 @@ function PlantScene({
       <rect ref={floorLow} x="500" y="290" width="120" height="0" fill="#c5c5c0" />
       <rect ref={floorMid} x="500" y="240" width="120" height="0" fill="#c5c5c0" />
       <rect ref={floorTop} x="500" y="194" width="120" height="0" fill="#c5c5c0" />
-      <text x="560" y="312" textAnchor="middle" fill="#f7f7f5" opacity="0.7" className={LABEL}>
+      <text x="560" y="312" textAnchor="middle" fill="#f7f7f5" fillOpacity="0.75" stroke="#111111" strokeWidth="5" strokeLinejoin="round" paintOrder="stroke" className={LABEL}>
         SUA OBRA
       </text>
 
-      <g ref={pump} opacity="0">
-        <rect x="258" y="270" width="74" height="22" rx="4" fill="#1a1c1f" stroke="#f7f7f5" strokeWidth="2" />
-        <circle cx="276" cy="292" r="7" fill="#1a1c1f" stroke="#f7f7f5" strokeWidth="2" />
-        <circle cx="316" cy="292" r="7" fill="#1a1c1f" stroke="#f7f7f5" strokeWidth="2" />
-        <path d="M262 250 H324 L308 270 H280 Z" fill="#1a1c1f" stroke="#f7f7f5" strokeWidth="2" />
-        <path d="M272 250 V140" stroke="#f7f7f5" strokeWidth="4" strokeLinecap="round" />
-        <path d="M272 140 L368 100 L470 108 L560 128" fill="none" stroke="#f7f7f5" strokeWidth="4" strokeLinecap="round" />
-        <circle cx="368" cy="100" r="4" fill="#ab1815" />
-        <circle cx="470" cy="108" r="4" fill="#ab1815" />
-        <text x="272" y="236" textAnchor="middle" fill="#f7f7f5" opacity="0.7" className={LABEL}>
-          BOMBA
-        </text>
-      </g>
       <path
         ref={pourStream}
         d="M560 130 V 196"
@@ -401,14 +511,8 @@ function ScrollScene({ section }: { section: HomeSection }) {
   const dustRef = useRef<HTMLDivElement>(null)
   const ctaRef = useRef<HTMLDivElement>(null)
 
-  const bin0 = useRef<SVGRectElement>(null)
-  const bin1 = useRef<SVGRectElement>(null)
-  const bin2 = useRef<SVGRectElement>(null)
-  const silo = useRef<SVGRectElement>(null)
-  const tank = useRef<SVGRectElement>(null)
-  const belt = useRef<SVGPathElement>(null)
-  const screw = useRef<SVGPathElement>(null)
-  const waterPipe = useRef<SVGPathElement>(null)
+  const fills = useRef<Record<string, SVGRectElement | null>>({})
+  const feeds = useRef<SVGGElement>(null)
   const scaleFill = useRef<SVGRectElement>(null)
   const blades = useRef<SVGGElement>(null)
   const chute = useRef<SVGGElement>(null)
@@ -425,16 +529,12 @@ function ScrollScene({ section }: { section: HomeSection }) {
     if (noteThreeRef.current) noteThreeRef.current.style.opacity = String(segment(value, [0.78, 0.86], [0, 1]))
     if (metrosRef.current) metrosRef.current.textContent = `${Math.round(segment(value, [0.46, 0.64], [0, 8]))} m³`
 
-    fillUp(bin0.current, value, 0.08, 0.22, 84, 60)
-    fillUp(bin1.current, value, 0.13, 0.27, 84, 60)
-    fillUp(bin2.current, value, 0.19, 0.33, 84, 44)
-    fillUp(silo.current, value, 0.15, 0.3, 130, 104)
-    fillUp(tank.current, value, 0.2, 0.34, 76, 42)
-    fillUp(scaleFill.current, value, 0.34, 0.46, 136, 28)
+    fillUp(fills.current.silo ?? null, value, SILO.fill[0], SILO.fill[1], SILO.bottom, SILO.bottom - SILO.top - 4)
+    for (const bin of bins) fillUp(fills.current[bin.id] ?? null, value, bin.fill[0], bin.fill[1], BIN.tip, BIN_MAX - 4)
+    fillUp(fills.current.tank ?? null, value, TANK.fill[0], TANK.fill[1], TANK.bottom, TANK.bottom - TANK.top - 4)
+    fillUp(scaleFill.current, value, 0.34, 0.46, 128, 20)
 
-    if (belt.current) belt.current.style.strokeDashoffset = String(segment(value, [0.3, 0.64], [0, -220]))
-    if (screw.current) screw.current.style.strokeDashoffset = String(segment(value, [0.3, 0.6], [0, -140]))
-    if (waterPipe.current) waterPipe.current.style.strokeDashoffset = String(segment(value, [0.32, 0.6], [0, -130]))
+    if (feeds.current) feeds.current.style.strokeDashoffset = String(segment(value, [0.3, 0.64], [0, -160]))
     if (blades.current) {
       blades.current.setAttribute("transform", `rotate(${segment(value, [0.42, 0.68], [0, 640])} 183 156)`)
     }
@@ -506,14 +606,8 @@ function ScrollScene({ section }: { section: HomeSection }) {
           className="absolute top-1/2 left-1/2 aspect-[2/1] w-[min(96vw,110vh,1040px)] -translate-x-1/2 -translate-y-1/2 md:top-auto md:bottom-[6%] md:translate-y-0"
         >
           <PlantScene
-            bin0={bin0}
-            bin1={bin1}
-            bin2={bin2}
-            silo={silo}
-            tank={tank}
-            belt={belt}
-            screw={screw}
-            waterPipe={waterPipe}
+            fills={fills}
+            feeds={feeds}
             scaleFill={scaleFill}
             blades={blades}
             chute={chute}

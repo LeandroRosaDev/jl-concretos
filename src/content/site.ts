@@ -14,8 +14,8 @@ import type {
   Vendedor,
 } from "@/types/site"
 
-const leo = linkWhatsapp("5521970192706", "Léo")
-const junior = linkWhatsapp("5521964099610", "Junior")
+const leo = linkWhatsapp("5521974345075", "Léo")
+const julia = linkWhatsapp("5521970192706", "Júlia")
 
 export const siteConfig: SiteConfig = {
   nome: "JL Concreto Usinado",
@@ -24,7 +24,7 @@ export const siteConfig: SiteConfig = {
   telefone: "(21) 97019-2706",
   telefoneHref: "tel:+5521970192706",
   whatsapp: "(21) 97019-2706",
-  whatsappHref: leo,
+  whatsappHref: julia,
   email: "contato@jlconcretousinado.com.br",
   emails: [
     { rotulo: "Contato", email: "contato@jlconcretousinado.com.br" },
@@ -55,18 +55,18 @@ export const vendedores: Vendedor[] = [
   {
     nome: "Léo",
     rotulo: "Vendedor Léo",
-    telefone: "(21) 97019-2706",
-    telefoneE164: "5521970192706",
-    telHref: "tel:+5521970192706",
+    telefone: "(21) 97434-5075",
+    telefoneE164: "5521974345075",
+    telHref: "tel:+5521974345075",
     whatsappHref: leo,
   },
   {
-    nome: "Junior",
-    rotulo: "Vendedor Junior",
-    telefone: "(21) 96409-9610",
-    telefoneE164: "5521964099610",
-    telHref: "tel:+5521964099610",
-    whatsappHref: junior,
+    nome: "Júlia",
+    rotulo: "Júlia — Comercial",
+    telefone: "(21) 97019-2706",
+    telefoneE164: "5521970192706",
+    telHref: "tel:+5521970192706",
+    whatsappHref: julia,
   },
 ]
 
@@ -302,7 +302,7 @@ export const faq: FaqItem[] = [
   {
     pergunta: "Qual é o WhatsApp da JL Concreto Usinado?",
     resposta: "O orçamento é feito direto com os vendedores, pelo WhatsApp.",
-    itens: ["Léo — (21) 97019-2706", "Junior — (21) 96409-9610"],
+    itens: ["Léo — (21) 97434-5075", "Júlia (Comercial) — (21) 97019-2706"],
   },
   {
     pergunta: "Por que escolher a JL Concreto para a minha obra?",
@@ -341,7 +341,7 @@ export const posts: Post[] = [
       "A etapa que não pode ser apressada de qualquer jeito é a concretagem da capa. O concreto precisa cobrir as vigotas com espessura e resistência previstas, sem interrupção que crie junta no meio do pano. É aí que o concreto usinado bombeado entra: o caminhão fica na rua e a bomba sobe o material até a laje.",
       "Além do prazo, a laje pré-moldada costuma pesar menos que a laje maciça, o que alivia fundação e vigas. Isso não dispensa projeto. Dispensa desperdício de madeira de forma e reduz equipe parada esperando concreteira.",
       "O uso é amplo: casas e sobrados, pavimentos de prédios, galpões com vão livre e ampliações. Em obra vertical, a altura deixa de ser obstáculo quando há bomba com alcance compatível.",
-      "A JL Concreto Usinado não substitui o projetista da laje. Entrega o concreto da capa, no traço combinado, e o bombeamento no horário em que a montagem já está liberada. Para orçar volume e janela de concretagem, fale com o Léo ou com o Junior pelo WhatsApp.",
+      "A JL Concreto Usinado não substitui o projetista da laje. Entrega o concreto da capa, no traço combinado, e o bombeamento no horário em que a montagem já está liberada. Para orçar volume e janela de concretagem, fale com o Léo ou com a Júlia pelo WhatsApp.",
     ],
   },
   {
